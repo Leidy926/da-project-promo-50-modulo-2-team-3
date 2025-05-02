@@ -250,8 +250,10 @@ WHERE a.Biography LIKE CONCAT('%', n.country, '%')
 UPDATE artists
 SET nationality_list = SUBSTRING_INDEX(nationality_list, ', ', 1);
 
-UPDATE artists
-SET country = nationality_list;
+UPDATE artists a
+JOIN nationalities n ON a.nationality_list = n.country
+SET a.nationality_en = n.nationality_en
+WHERE a.nationality_en IS NULL;
 
 ALTER TABLE artists
 DROP COLUMN nationality_list;
@@ -832,3 +834,9 @@ UPDATE artists a
 JOIN nationalities n ON a.country = n.country
 SET a.nationality_id = n.nationality_id
 WHERE a.nationality_id IS NULL;
+
+-- Gender
+UPDATE artists a
+JOIN genders n ON a.gender = n.gender
+SET a.gender_id = n.gender_id
+WHERE a.gender_id IS NULL;
