@@ -1,6 +1,6 @@
 USE project_musicstream;
 
-DROP TABLE nationalities;
+DROP TABLE IF EXISTS nationalities;
 
 CREATE TABLE nationalities (
     nationality_id INT PRIMARY KEY,
@@ -89,7 +89,7 @@ INSERT INTO Nationalities (nationality_id, nationality_en, nationality_es, count
 (77, 'Israeli', 'Israelí', 'Israel'),
 (78, 'Italian', 'Italian', 'Italy'),
 (79, 'Jamaican', 'Jamaiquin', 'Jamaica'),
-(80, 'Japanese', 'Japonés', 'Japan'),
+(80, 'Japanese', 'Japon', 'Japan'),
 (81, 'Jordanian', 'Jordan', 'Jordan'),
 (82, 'Kazakh', 'Kazaj', 'Kazakhstan'),
 (83, 'Kenyan', 'Keniat', 'Kenya'),
@@ -162,7 +162,7 @@ INSERT INTO Nationalities (nationality_id, nationality_en, nationality_es, count
 (150, 'Spanish', 'Español', 'Spain'),
 (151, 'Sri Lankan', 'Ceilanés', 'Sri Lanka'),
 (152, 'Sudanese', 'Sudanés', 'Sudan'),
-(153, 'Surinamese', 'Surinamés', 'Suriname'),
+(153, 'Surinamese', 'Surinam', 'Suriname'),
 (154, 'Swazi', 'Suaz', 'Eswatini'),
 (155, 'Swedish', 'Suec', 'Sweden'),
 (156, 'Swiss', 'Suiz', 'Switzerland'),
@@ -322,7 +322,7 @@ INSERT INTO us_states (StateName) VALUES
 UPDATE artists a
 JOIN us_states n ON a.Biography 
 LIKE CONCAT('%', n.StateName, '%')
-SET a.country = 'US';
+SET a.country = 'United States';
 
 -- Different ways in writing Nationalities
 DROP TABLE us_citizens;
@@ -344,7 +344,7 @@ INSERT INTO us_citizens (term) VALUES
 UPDATE artists a
 JOIN us_citizens n ON a.Biography 
 LIKE CONCAT('%', n.term, '%')
-SET a.country = 'American';
+SET a.country = 'United States';
 
 DROP TABLE us_cities;
 
@@ -458,7 +458,7 @@ INSERT INTO us_cities (CityName) VALUES
 
 UPDATE artists a
 JOIN us_cities n ON a.Biography REGEXP CONCAT('\\b', n.CityName, '\\b')
-SET a.country = 'US';
+SET a.country = 'United States';
 
 -- Great Britain 
 DROP TABLE uk_cities;
@@ -467,7 +467,7 @@ CREATE TABLE uk_cities (
     CityName VARCHAR(50) NOT NULL
 );
 
-INSERT INTO UK_Cities (CityName) VALUES
+INSERT INTO uk_cities (CityName) VALUES
 ('Bath'),
 ('Birmingham'),
 ('Bradford'),
@@ -525,7 +525,7 @@ INSERT INTO UK_Cities (CityName) VALUES
 ('York');
 
 UPDATE artists a
-JOIN UK_Cities n ON a.Biography 
+JOIN uk_cities n ON a.Biography 
 LIKE CONCAT('%', n.CityName, '%')
 SET a.country = 'England';
 
@@ -745,6 +745,18 @@ INSERT INTO genders (gender, pronouns_en, pronouns_es) VALUES
 ('N/A - band', 'band', 'banda')
 ;
 
+ALTER table artists
+DROP COLUMN male,
+DROP COLUMN female,
+DROP COLUMN non_binary,
+DROP COLUMN band;
+
+ALTER TABLE artists
+ADD male VARCHAR(10),
+ADD female VARCHAR(10),
+ADD non_binary VARCHAR(10),
+ADD band VARCHAR(10);
+
 UPDATE artists a
 JOIN genders n ON a.Biography REGEXP CONCAT('\\b', n.pronouns_en, '\\b')
 SET a.gender = n.gender;
@@ -766,7 +778,8 @@ INSERT INTO male (key_male_words) VALUES
 ('man'),
 ('male'),
 ('hombre'),
-('masculino');
+('masculino'),
+('his');
 
 DROP TABLE female;
 
@@ -784,11 +797,11 @@ INSERT INTO female (key_female_words) VALUES
 
 UPDATE artists a
 JOIN male n ON a.Biography REGEXP CONCAT('\\b', n.key_male_words, '\\b')
-SET a.gender = 'male';
+SET a.male = 'male';
 
 UPDATE artists a
 JOIN female n ON a.Biography REGEXP CONCAT('\\b', n.key_female_words, '\\b')
-SET a.gender = 'female';
+SET a.female = 'female';
 
 DROP TABLE band;
 
@@ -816,7 +829,20 @@ INSERT INTO band (key_band_words) VALUES
 
 UPDATE artists a
 JOIN band n ON a.Biography REGEXP CONCAT('\\b', n.key_band_words, '\\b')
-SET a.gender = 'N/A - band';
+SET a.band = 'N/A - band';
+
+DROP TABLE non_binary;
+
+CREATE TABLE non_binary (
+    key_non_binary_words VARCHAR(20) NOT NULL
+    );
+
+INSERT INTO non_binary (key_non_binary_words) VALUES 
+('their');
+
+UPDATE artists a
+JOIN non_binary n ON a.Biography REGEXP CONCAT('\\b', n.key_non_binary_words, '\\b')
+SET a.non_binary = 'non-binary';
 
 -- Filling the nationality and gender id field
 
@@ -838,5 +864,25 @@ WHERE a.nationality_id IS NULL;
 -- Gender
 UPDATE artists a
 JOIN genders n ON a.gender = n.gender
+SET a.gender_id = n.gender_id
+WHERE a.gender_id IS NULL;
+
+UPDATE artists a
+JOIN genders n ON a.male = n.gender
+SET a.gender_id = n.gender_id
+WHERE a.gender_id IS NULL;
+
+UPDATE artists a
+JOIN genders n ON a.female = n.gender
+SET a.gender_id = n.gender_id
+WHERE a.gender_id IS NULL;
+
+UPDATE artists a
+JOIN genders n ON a.band = n.gender
+SET a.gender_id = n.gender_id
+WHERE a.gender = 'non-binary' OR a.gender_id IS NULL;
+
+UPDATE artists a
+JOIN genders n ON a.non_binary = n.gender
 SET a.gender_id = n.gender_id
 WHERE a.gender_id IS NULL;
