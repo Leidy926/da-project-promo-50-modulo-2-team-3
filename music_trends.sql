@@ -5,6 +5,12 @@ CREATE SCHEMA IF NOT EXISTS music_trends;
 USE music_trends;
 
 -- Creación de tablas
+CREATE TABLE nationalities (
+    nationality_id INT PRIMARY KEY,
+    nationality_en VARCHAR(50),
+    nationality_es VARCHAR(50),
+    country VARCHAR(50)
+);
 
 CREATE TABLE IF NOT EXISTS genre (
     id_genre INT PRIMARY KEY AUTO_INCREMENT,
@@ -19,8 +25,8 @@ CREATE TABLE IF NOT EXISTS artists (
     listeners BIGINT,
     playcount BIGINT,
     biography TEXT,
-    id_nationality VARCHAR(100),
-    FOREIGN KEY (id_nationality) REFERENCES nationalities(id_nationality)
+    nationality_id INT,
+    FOREIGN KEY (nationality_id) REFERENCES nationalities(nationality_id)
 );
 
 CREATE TABLE IF NOT EXISTS albums (
@@ -67,8 +73,6 @@ WHERE album_name IS NOT NULL
     SELECT name_album FROM albums
 );
 
-INSERT INTO B.nombre_tabla_destino (columna_destino)
-SELECT columna_origen FROM A.nombre_tabla_origen;
 
 INSERT INTO music_trends.artists (name_artist, biography, listeners, playcount)
 SELECT DISTINCT Artist, Biography, Listeners, Playcount
@@ -80,25 +84,26 @@ ALTER TABLE music_trends.albums MODIFY COLUMN name_album VARCHAR(300);
 INSERT INTO music_trends.albums (name_album, id_artist)
 SELECT DISTINCT c.album_name, a.id_artist
 FROM datamusic.tracks c
-JOIN music_trends.artists a ON c.name_artist = a.name_artist
+LEFT JOIN music_trends.artists a ON c.name_artist = a.name_artist
 WHERE c.album_name IS NOT NULL;
 
 ALTER TABLE music_trends.tracks MODIFY COLUMN name_track VARCHAR(300);
 
+ALTER TABLE music_trends.tracks ADD COLUMN name_album VARCHAR(300);
+
 INSERT INTO music_trends.tracks (
-    name_track, id_artist, popularity_index, id_album, id_genre, release_year
+    name_track, id_artist, popularity_index, name_album, id_genre, release_year, id_album
 )
 SELECT DISTINCT 
-    c.name_track, a.id_artist, c.popularity, al.id_album, g.id_genre,
-    CASE 
-        WHEN c.year REGEXP '^[0-9]{4}$' THEN CAST(c.year AS UNSIGNED)
-        ELSE NULL 
-    END
+    c.name_track, a.id_artist, c.popularity, c.album_name, g.id_genre, c.year, 1  
 FROM datamusic.tracks c
-JOIN music_trends.artists a ON c.name_artist = a.name_artist
-JOIN music_trends.albums al ON c.album_name = al.name_album
-JOIN music_trends.genre g ON c.genre = g.genre
-WHERE c.name_track IS NOT NULL;
+LEFT JOIN music_trends.artists a ON c.name_artist = a.name_artist
+LEFT JOIN music_trends.genre g ON c.genre = g.genre;
+
+SET SQL_SAFE_UPDATES = 0;
+UPDATE music_trends.tracks a
+JOIN music_trends.albums n ON a.name_album = n.name_album
+SET a.id_album = n.id_album;
 
 -- agrega id_artist a albums
 
@@ -116,12 +121,7 @@ WHERE al.id_artist IS NULL;
 ALTER TABLE artists DROP FOREIGN KEY artists_ibfk_1;
 DROP TABLE IF EXISTS nationalities;
 
-CREATE TABLE nationalities (
-    nationality_id INT PRIMARY KEY,
-    nationality_en VARCHAR(50),
-    nationality_es VARCHAR(50),
-    country VARCHAR(50)
-);
+
 
 INSERT INTO Nationalities (nationality_id, nationality_en, nationality_es, country) VALUES
 (1, 'Afghan', 'Afgan', 'Afghanistan'),
@@ -1030,3 +1030,18 @@ WHERE id_track NOT IN (
 ALTER TABLE tracks 
 ADD CONSTRAINT fk_albums FOREIGN KEY (id_album) 
 REFERENCES albums(id_album);
+
+
+ALTER TABLE artists 
+DROP COLUMN nationality_en, 
+DROP COLUMN nationality_es,  
+DROP COLUMN nationality,
+DROP COLUMN country, 
+DROP COLUMN male, 
+DROP COLUMN female, 
+DROP COLUMN non_binary, 
+DROP COLUMN band;
+
+ALTER TABLE genders 
+DROP COLUMN pronouns_en,
+DROP COLUMN pronouns_es; 
