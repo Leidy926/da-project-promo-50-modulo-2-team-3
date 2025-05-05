@@ -31,18 +31,18 @@ CREATE TABLE IF NOT EXISTS artists (
 
 CREATE TABLE IF NOT EXISTS albums (
     id_album INT PRIMARY KEY AUTO_INCREMENT,
-    name_album VARCHAR(150) NOT NULL,
+    name_album VARCHAR(300) NOT NULL,
     id_artist INT,
     FOREIGN KEY (id_artist) REFERENCES artists(id_artist)
 );
 
 CREATE TABLE IF NOT EXISTS tracks (
     id_track INT PRIMARY KEY AUTO_INCREMENT,
-    name_track VARCHAR(150) NOT NULL,
-    id_artist INT NOT NULL,
+    name_track VARCHAR(300) NOT NULL,
+    id_artist INT,
     popularity_index INT,
-    id_album INT NOT NULL,
-    id_genre INT NOT NULL,
+    id_album INT,
+    id_genre INT ,
     release_year YEAR,
     FOREIGN KEY (id_album) REFERENCES albums(id_album),
     FOREIGN KEY (id_genre) REFERENCES genre (id_genre),
@@ -63,64 +63,368 @@ WHERE genre IS NOT NULL
 
 -- 2. Insertar albums
 -- Trunca los nombres de álbum que exceden 150 caracteres
-INSERT INTO albums (name_album)
-SELECT DISTINCT
-    LEFT(album_name, 150)
-FROM datamusic.tracks
-WHERE album_name IS NOT NULL
-  AND year REGEXP '^[0-9]{4}$'
-  AND LEFT(album_name, 150) NOT IN (
-    SELECT name_album FROM albums
-);
+ALTER TABLE albums
+ADD COLUMN artist VARCHAR(300);
 
+INSERT INTO albums (name_album, artist)
+SELECT DISTINCT album_name, name_artist 
+FROM datamusic.tracks
+WHERE album_name IS NOT NULL;
 
 INSERT INTO music_trends.artists (name_artist, biography, listeners, playcount)
 SELECT DISTINCT Artist, Biography, Listeners, Playcount
 FROM datamusic.artists
 WHERE Artist IS NOT NULL;
 
-ALTER TABLE music_trends.albums MODIFY COLUMN name_album VARCHAR(300);
+SET SQL_SAFE_UPDATES = 0;
 
-INSERT INTO music_trends.albums (name_album, id_artist)
-SELECT DISTINCT c.album_name, a.id_artist
-FROM datamusic.tracks c
-LEFT JOIN music_trends.artists a ON c.name_artist = a.name_artist
-WHERE c.album_name IS NOT NULL;
+SET SESSION net_write_timeout = 600;
+SET SESSION net_read_timeout = 600;
 
-ALTER TABLE music_trends.tracks MODIFY COLUMN name_track VARCHAR(300);
+ALTER TABLE music_trends.albums 
+MODIFY COLUMN name_album VARCHAR(300);
 
-ALTER TABLE music_trends.tracks ADD COLUMN name_album VARCHAR(300);
+UPDATE albums a
+JOIN artists n ON a.artist = n.name_artist
+SET a.id_artist = n.id_artist
+WHERE a.id_album Between 0 AND 1000;
+
+UPDATE albums a
+JOIN artists n ON a.artist = n.name_artist
+SET a.id_artist = n.id_artist
+WHERE a.id_album Between 1000 AND 2000;
+
+UPDATE albums a
+JOIN artists n ON a.artist = n.name_artist
+SET a.id_artist = n.id_artist
+WHERE a.id_album Between 2000 AND 3000;
+
+UPDATE albums a
+JOIN artists n ON a.artist = n.name_artist
+SET a.id_artist = n.id_artist
+WHERE a.id_album Between 3000 AND 4000;
+
+UPDATE albums a
+JOIN artists n ON a.artist = n.name_artist
+SET a.id_artist = n.id_artist
+WHERE a.id_album Between 4000 AND 5000;
+
+UPDATE albums a
+JOIN artists n ON a.artist = n.name_artist
+SET a.id_artist = n.id_artist
+WHERE a.id_album Between 5000 AND 6000;
+
+UPDATE albums a
+JOIN artists n ON a.artist = n.name_artist
+SET a.id_artist = n.id_artist
+WHERE a.id_album Between 6000 AND 7000;
+
+UPDATE albums a
+JOIN artists n ON a.artist = n.name_artist
+SET a.id_artist = n.id_artist
+WHERE a.id_album Between 7000 AND 8000;
+
+UPDATE albums a
+JOIN artists n ON a.artist = n.name_artist
+SET a.id_artist = n.id_artist
+WHERE a.id_album Between 8000 AND 9000;
+
+UPDATE albums a
+JOIN artists n ON a.artist = n.name_artist
+SET a.id_artist = n.id_artist
+WHERE a.id_album Between 9000 AND 10000;
+
+UPDATE albums a
+JOIN artists n ON a.artist = n.name_artist
+SET a.id_artist = n.id_artist
+WHERE a.id_album Between 10000 AND 11000;
+
+UPDATE albums a
+JOIN artists n ON a.artist = n.name_artist
+SET a.id_artist = n.id_artist
+WHERE a.id_album Between 11000 AND 12000;
+
+UPDATE albums a
+JOIN artists n ON a.artist = n.name_artist
+SET a.id_artist = n.id_artist
+WHERE a.id_album Between 12000 AND 13000;
+
+UPDATE albums a
+JOIN artists n ON a.artist = n.name_artist
+SET a.id_artist = n.id_artist
+WHERE a.id_album Between 13000 AND 14000;
+
+UPDATE albums a
+JOIN artists n ON a.artist = n.name_artist
+SET a.id_artist = n.id_artist
+WHERE a.id_album Between 14000 AND 15000;
+
+UPDATE albums a
+JOIN artists n ON a.artist = n.name_artist
+SET a.id_artist = n.id_artist
+WHERE a.id_album Between 15000 AND 16000;
+
+ALTER TABLE music_trends.albums 
+DROP COLUMN artist;
+
+DELETE FROM music_trends.tracks;
+
+ALTER TABLE music_trends.tracks 
+ADD COLUMN name_artist VARCHAR(300),
+ADD COLUMN genre VARCHAR (50),
+ADD COLUMN album_name VARCHAR(300);
 
 INSERT INTO music_trends.tracks (
-    name_track, id_artist, popularity_index, name_album, id_genre, release_year, id_album
+    name_track, name_artist, popularity_index, genre, release_year, album_name
 )
-SELECT DISTINCT 
-    c.name_track, a.id_artist, c.popularity, c.album_name, g.id_genre, c.year, 1  
-FROM datamusic.tracks c
-LEFT JOIN music_trends.artists a ON c.name_artist = a.name_artist
-LEFT JOIN music_trends.genre g ON c.genre = g.genre;
+SELECT
+    name_track, name_artist, popularity, genre, year, album_name
+FROM datamusic.tracks;
 
-SET SQL_SAFE_UPDATES = 0;
-UPDATE music_trends.tracks a
-JOIN music_trends.albums n ON a.name_album = n.name_album
-SET a.id_album = n.id_album;
+UPDATE tracks a
+LEFT JOIN albums n 
+	ON a.album_name = n.name_album
+LEFT JOIN artists b
+	ON a.name_artist = b.name_artist
+LEFT JOIN genre g
+	ON a.genre = g.genre
+SET a.id_album = n.id_album, a.id_artist = b.id_artist, a.id_genre = g.id_genre
+WHERE id_track BETWEEN 0 AND 1000;
 
--- agrega id_artist a albums
+UPDATE tracks a
+LEFT JOIN albums n 
+	ON a.album_name = n.name_album
+LEFT JOIN artists b
+	ON a.name_artist = b.name_artist
+LEFT JOIN genre g
+	ON a.genre = g.genre
+SET a.id_album = n.id_album, a.id_artist = b.id_artist, a.id_genre = g.id_genre
+WHERE id_track BETWEEN 1000 AND 2000;
 
-SET GLOBAL wait_timeout = 600;
-SET GLOBAL interactive_timeout = 600;
+UPDATE tracks a
+LEFT JOIN albums n 
+	ON a.album_name = n.name_album
+LEFT JOIN artists b
+	ON a.name_artist = b.name_artist
+LEFT JOIN genre g
+	ON a.genre = g.genre
+SET a.id_album = n.id_album, a.id_artist = b.id_artist, a.id_genre = g.id_genre
+WHERE id_track BETWEEN 2000 AND 3000;
 
+UPDATE tracks a
+LEFT JOIN albums n 
+	ON a.album_name = n.name_album
+LEFT JOIN artists b
+	ON a.name_artist = b.name_artist
+LEFT JOIN genre g
+	ON a.genre = g.genre
+SET a.id_album = n.id_album, a.id_artist = b.id_artist, a.id_genre = g.id_genre
+WHERE id_track BETWEEN 3000 AND 4000;
 
-UPDATE music_trends.albums al
-JOIN datamusic.tracks dt ON al.name_album = dt.album_name
-JOIN music_trends.artists ar ON dt.name_artist = ar.name_artist
-SET al.id_artist = ar.id_artist
-WHERE al.id_artist IS NULL;
+UPDATE tracks a
+LEFT JOIN albums n 
+	ON a.album_name = n.name_album
+LEFT JOIN artists b
+	ON a.name_artist = b.name_artist
+LEFT JOIN genre g
+	ON a.genre = g.genre
+SET a.id_album = n.id_album, a.id_artist = b.id_artist, a.id_genre = g.id_genre
+WHERE id_track BETWEEN 4000 AND 5000;
 
+UPDATE tracks a
+LEFT JOIN albums n 
+	ON a.album_name = n.name_album
+LEFT JOIN artists b
+	ON a.name_artist = b.name_artist
+LEFT JOIN genre g
+	ON a.genre = g.genre
+SET a.id_album = n.id_album, a.id_artist = b.id_artist, a.id_genre = g.id_genre
+WHERE id_track BETWEEN 5000 AND 6000;
 
-ALTER TABLE artists DROP FOREIGN KEY artists_ibfk_1;
-DROP TABLE IF EXISTS nationalities;
+UPDATE tracks a
+LEFT JOIN albums n 
+	ON a.album_name = n.name_album
+LEFT JOIN artists b
+	ON a.name_artist = b.name_artist
+LEFT JOIN genre g
+	ON a.genre = g.genre
+SET a.id_album = n.id_album, a.id_artist = b.id_artist, a.id_genre = g.id_genre
+WHERE id_track BETWEEN 6000 AND 7000;
 
+UPDATE tracks a
+LEFT JOIN albums n 
+	ON a.album_name = n.name_album
+LEFT JOIN artists b
+	ON a.name_artist = b.name_artist
+LEFT JOIN genre g
+	ON a.genre = g.genre
+SET a.id_album = n.id_album, a.id_artist = b.id_artist, a.id_genre = g.id_genre
+WHERE id_track BETWEEN 7000 AND 8000;
+
+UPDATE tracks a
+LEFT JOIN albums n 
+	ON a.album_name = n.name_album
+LEFT JOIN artists b
+	ON a.name_artist = b.name_artist
+LEFT JOIN genre g
+	ON a.genre = g.genre
+SET a.id_album = n.id_album, a.id_artist = b.id_artist, a.id_genre = g.id_genre
+WHERE id_track BETWEEN 8000 AND 9000;
+
+UPDATE tracks a
+LEFT JOIN albums n 
+	ON a.album_name = n.name_album
+LEFT JOIN artists b
+	ON a.name_artist = b.name_artist
+LEFT JOIN genre g
+	ON a.genre = g.genre
+SET a.id_album = n.id_album, a.id_artist = b.id_artist, a.id_genre = g.id_genre
+WHERE id_track BETWEEN 9000 AND 10000;
+
+UPDATE tracks a
+LEFT JOIN albums n 
+	ON a.album_name = n.name_album
+LEFT JOIN artists b
+	ON a.name_artist = b.name_artist
+LEFT JOIN genre g
+	ON a.genre = g.genre
+SET a.id_album = n.id_album, a.id_artist = b.id_artist, a.id_genre = g.id_genre
+WHERE id_track BETWEEN 10000 AND 11000;
+
+UPDATE tracks a
+LEFT JOIN albums n 
+	ON a.album_name = n.name_album
+LEFT JOIN artists b
+	ON a.name_artist = b.name_artist
+LEFT JOIN genre g
+	ON a.genre = g.genre
+SET a.id_album = n.id_album, a.id_artist = b.id_artist, a.id_genre = g.id_genre
+WHERE id_track BETWEEN 11000 AND 12000;
+
+UPDATE tracks a
+LEFT JOIN albums n 
+	ON a.album_name = n.name_album
+LEFT JOIN artists b
+	ON a.name_artist = b.name_artist
+LEFT JOIN genre g
+	ON a.genre = g.genre
+SET a.id_album = n.id_album, a.id_artist = b.id_artist, a.id_genre = g.id_genre
+WHERE id_track BETWEEN 12000 AND 13000;
+
+UPDATE tracks a
+LEFT JOIN albums n 
+	ON a.album_name = n.name_album
+LEFT JOIN artists b
+	ON a.name_artist = b.name_artist
+LEFT JOIN genre g
+	ON a.genre = g.genre
+SET a.id_album = n.id_album, a.id_artist = b.id_artist, a.id_genre = g.id_genre
+WHERE id_track BETWEEN 13000 AND 14000;
+
+UPDATE tracks a
+LEFT JOIN albums n 
+	ON a.album_name = n.name_album
+LEFT JOIN artists b
+	ON a.name_artist = b.name_artist
+LEFT JOIN genre g
+	ON a.genre = g.genre
+SET a.id_album = n.id_album, a.id_artist = b.id_artist, a.id_genre = g.id_genre
+WHERE id_track BETWEEN 14000 AND 15000;
+
+UPDATE tracks a
+LEFT JOIN albums n 
+	ON a.album_name = n.name_album
+LEFT JOIN artists b
+	ON a.name_artist = b.name_artist
+LEFT JOIN genre g
+	ON a.genre = g.genre
+SET a.id_album = n.id_album, a.id_artist = b.id_artist, a.id_genre = g.id_genre
+WHERE id_track BETWEEN 15000 AND 16000;
+
+UPDATE tracks a
+LEFT JOIN albums n 
+	ON a.album_name = n.name_album
+LEFT JOIN artists b
+	ON a.name_artist = b.name_artist
+LEFT JOIN genre g
+	ON a.genre = g.genre
+SET a.id_album = n.id_album, a.id_artist = b.id_artist, a.id_genre = g.id_genre
+WHERE id_track BETWEEN 16000 AND 17000;
+
+UPDATE tracks a
+LEFT JOIN albums n 
+	ON a.album_name = n.name_album
+LEFT JOIN artists b
+	ON a.name_artist = b.name_artist
+LEFT JOIN genre g
+	ON a.genre = g.genre
+SET a.id_album = n.id_album, a.id_artist = b.id_artist, a.id_genre = g.id_genre
+WHERE id_track BETWEEN 17000 AND 18000;
+
+UPDATE tracks a
+LEFT JOIN albums n 
+	ON a.album_name = n.name_album
+LEFT JOIN artists b
+	ON a.name_artist = b.name_artist
+LEFT JOIN genre g
+	ON a.genre = g.genre
+SET a.id_album = n.id_album, a.id_artist = b.id_artist, a.id_genre = g.id_genre
+WHERE id_track BETWEEN 18000 AND 19000;
+
+UPDATE tracks a
+LEFT JOIN albums n 
+	ON a.album_name = n.name_album
+LEFT JOIN artists b
+	ON a.name_artist = b.name_artist
+LEFT JOIN genre g
+	ON a.genre = g.genre
+SET a.id_album = n.id_album, a.id_artist = b.id_artist, a.id_genre = g.id_genre
+WHERE id_track BETWEEN 19000 AND 20000;
+
+UPDATE tracks a
+LEFT JOIN albums n 
+	ON a.album_name = n.name_album
+LEFT JOIN artists b
+	ON a.name_artist = b.name_artist
+LEFT JOIN genre g
+	ON a.genre = g.genre
+SET a.id_album = n.id_album, a.id_artist = b.id_artist, a.id_genre = g.id_genre
+WHERE id_track BETWEEN 20000 AND 21000;
+
+UPDATE tracks a
+LEFT JOIN albums n 
+	ON a.album_name = n.name_album
+LEFT JOIN artists b
+	ON a.name_artist = b.name_artist
+LEFT JOIN genre g
+	ON a.genre = g.genre
+SET a.id_album = n.id_album, a.id_artist = b.id_artist, a.id_genre = g.id_genre
+WHERE id_track BETWEEN 21000 AND 22000;
+
+UPDATE tracks a
+LEFT JOIN albums n 
+	ON a.album_name = n.name_album
+LEFT JOIN artists b
+	ON a.name_artist = b.name_artist
+LEFT JOIN genre g
+	ON a.genre = g.genre
+SET a.id_album = n.id_album, a.id_artist = b.id_artist, a.id_genre = g.id_genre
+WHERE id_track BETWEEN 22000 AND 23000;
+
+UPDATE tracks a
+LEFT JOIN albums n 
+	ON a.album_name = n.name_album
+LEFT JOIN artists b
+	ON a.name_artist = b.name_artist
+LEFT JOIN genre g
+	ON a.genre = g.genre
+SET a.id_album = n.id_album, a.id_artist = b.id_artist, a.id_genre = g.id_genre
+WHERE id_track BETWEEN 23000 AND 24000;
+
+ALTER TABLE tracks
+DROP COLUMN name_artist,
+DROP COLUMN genre,
+DROP COLUMN album_name;
 
 
 INSERT INTO Nationalities (nationality_id, nationality_en, nationality_es, country) VALUES
@@ -307,17 +611,17 @@ INSERT INTO Nationalities (nationality_id, nationality_en, nationality_es, count
 (181, 'Scottish', 'Escos', 'Scotland'),
 (182, 'Puerto Rican', 'Puertoriqueñ', 'Puerto Rico');
 
-alter table artists
-DROP COLUMN id_nationality;
+-- alter table artists
+-- DROP COLUMN id_nationality;
 
 ALTER TABLE artists
-ADD nationality_id INT, 
 ADD nationality_en VARCHAR(20),
 ADD nationality_es VARCHAR(20),
 ADD nationality VARCHAR(20),
 ADD country VARCHAR(30);
 
-ALTER TABLE artists ADD COLUMN nationality_list VARCHAR(255);
+ALTER TABLE artists 
+ADD COLUMN nationality_list VARCHAR(255);
 
 SET SQL_SAFE_UPDATES = 0;
 
@@ -327,8 +631,6 @@ SELECT GROUP_CONCAT(n.nationality_en ORDER BY LOCATE(n.nationality_en, a.Biograp
 FROM nationalities n
 WHERE a.Biography LIKE CONCAT('%', n.nationality_en, '%')
 );
-SET SQL_SAFE_UPDATES = 1;
-
 
 UPDATE artists
 SET nationality_list = SUBSTRING_INDEX(nationality_list, ', ', 1);
@@ -336,7 +638,7 @@ SET nationality_list = SUBSTRING_INDEX(nationality_list, ', ', 1);
 UPDATE artists
 SET nationality_en = nationality_list;
 
-Update artists set nationality_list = NULL;
+UPDATE artists set nationality_list = NULL;
 
 UPDATE artists a
 SET a.nationality_list = (
@@ -351,7 +653,7 @@ SET nationality_list = SUBSTRING_INDEX(nationality_list, ', ', 1);
 UPDATE artists
 SET nationality_es = nationality_list;
 
-Update artists set nationality_list = NULL;
+UPDATE artists set nationality_list = NULL;
 
 UPDATE artists a
 SET a.nationality_list = (
@@ -374,7 +676,7 @@ DROP COLUMN nationality_list;
 -- EXCEPETIONS IN THE LIST OF COUNTRIES
 
 -- American states
-DROP TABLE us_states;
+-- DROP TABLE us_states;
 
 CREATE TABLE us_states (
     StateName VARCHAR(50) NOT NULL
@@ -438,7 +740,7 @@ LIKE CONCAT('%', n.StateName, '%')
 SET a.country = 'United States';
 
 -- Different ways in writing Nationalities
-DROP TABLE us_citizens;
+-- DROP TABLE us_citizens;
 
 CREATE TABLE us_citizens(
     term VARCHAR(50)
@@ -459,7 +761,7 @@ JOIN us_citizens n ON a.Biography
 LIKE CONCAT('%', n.term, '%')
 SET a.country = 'United States';
 
-DROP TABLE us_cities;
+-- DROP TABLE us_cities;
 
 CREATE TABLE us_cities (
 	CityName VARCHAR(50) NOT NULL
@@ -574,7 +876,7 @@ JOIN us_cities n ON a.Biography REGEXP CONCAT('\\b', n.CityName, '\\b')
 SET a.country = 'United States';
 
 -- Great Britain 
-DROP TABLE uk_cities;
+-- DROP TABLE uk_cities;
 
 CREATE TABLE uk_cities (
     CityName VARCHAR(50) NOT NULL
@@ -643,7 +945,7 @@ LIKE CONCAT('%', n.CityName, '%')
 SET a.country = 'England';
 
 -- Japan
-DROP TABLE japan_cities;
+-- DROP TABLE japan_cities;
 
 CREATE TABLE japan_cities (
     CityName VARCHAR(50) NOT NULL
@@ -706,7 +1008,7 @@ JOIN japan_cities n ON a.Biography
 LIKE CONCAT('%', n.CityName, '%')
 SET a.country = 'Japan';
 
-DROP TABLE mexico_cities;
+-- DROP TABLE mexico_cities;
 
 CREATE TABLE mexico_cities (
     CityName VARCHAR(50) NOT NULL
@@ -769,7 +1071,7 @@ JOIN mexico_cities n ON a.Biography
 LIKE CONCAT('%', n.CityName, '%')
 SET a.country = 'Mexico';
 
-DROP TABLE brazil_cities;
+-- DROP TABLE brazil_cities;
 
 CREATE TABLE brazil_cities (
     CityName VARCHAR(50) NOT NULL
@@ -833,19 +1135,16 @@ LIKE CONCAT('%', n.CityName, '%')
 SET a.country = 'Brazil';
 
 -- GENDER
-ALTER TABLE artists
-DROP COLUMN gender_id, 
-DROP COLUMN gender;
+-- ALTER TABLE artists
+-- DROP COLUMN gender_id, 
+-- DROP COLUMN gender;
 
 ALTER TABLE artists
-ADD gender_id INT, 
-ADD gender VARCHAR(10);
+ADD COLUMN gender_id INT,
+MODIFY COLUMN gender VARCHAR(10);
 
 -- List of gender
-
-SHOW TABLES FROM music_trends;
-
-DROP TABLE genders;
+-- DROP TABLE genders;
 
 CREATE TABLE genders (
 	gender_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -861,11 +1160,11 @@ INSERT INTO genders (gender, pronouns_en, pronouns_es) VALUES
 ('N/A - band', 'band', 'banda')
 ;
 
-ALTER table artists
-DROP COLUMN male,
-DROP COLUMN female,
-DROP COLUMN non_binary,
-DROP COLUMN band;
+-- ALTER table artists
+-- DROP COLUMN male,
+-- DROP COLUMN female,
+-- DROP COLUMN non_binary,
+-- DROP COLUMN band;
 
 ALTER TABLE artists
 ADD male VARCHAR(10),
@@ -882,7 +1181,7 @@ JOIN genders n ON a.Biography REGEXP CONCAT('\\b', n.pronouns_es, '\\b')
 SET a.gender = n.gender;
 
 -- key words by gender
-DROP TABLE male;
+-- DROP TABLE male;
 
 CREATE TABLE male (
     key_male_words VARCHAR(20) NOT NULL
@@ -897,7 +1196,7 @@ INSERT INTO male (key_male_words) VALUES
 ('masculino'),
 ('his');
 
-DROP TABLE female;
+-- DROP TABLE female;
 
 CREATE TABLE female (
     key_female_words VARCHAR(20) NOT NULL
@@ -919,7 +1218,7 @@ UPDATE artists a
 JOIN female n ON a.Biography REGEXP CONCAT('\\b', n.key_female_words, '\\b')
 SET a.female = 'female';
 
-DROP TABLE band;
+-- DROP TABLE band;
 
 CREATE TABLE band (
     key_band_words VARCHAR(20) NOT NULL
@@ -947,7 +1246,7 @@ UPDATE artists a
 JOIN band n ON a.Biography REGEXP CONCAT('\\b', n.key_band_words, '\\b')
 SET a.band = 'N/A - band';
 
-DROP TABLE non_binary;
+-- DROP TABLE non_binary;
 
 CREATE TABLE non_binary (
     key_non_binary_words VARCHAR(20) NOT NULL
@@ -978,10 +1277,6 @@ SET a.nationality_id = n.nationality_id
 WHERE a.nationality_id IS NULL;
 
 -- Gender
-
-ALTER TABLE artists ADD COLUMN gender_id INT;
-
-
 UPDATE artists a
 JOIN genders n ON a.gender = n.gender
 SET a.gender_id = n.gender_id
@@ -1008,6 +1303,7 @@ SET a.gender_id = n.gender_id
 WHERE a.gender_id IS NULL;
 
 -- Crear relaciones entre tablas
+-- Fix from here!!
 
 ALTER TABLE artists 
 ADD CONSTRAINT fk_nationality FOREIGN KEY (nationality_id) 
@@ -1045,3 +1341,5 @@ DROP COLUMN band;
 ALTER TABLE genders 
 DROP COLUMN pronouns_en,
 DROP COLUMN pronouns_es; 
+
+SET SQL_SAFE_UPDATES = 1;
