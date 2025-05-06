@@ -625,11 +625,18 @@ ADD COLUMN nationality_list VARCHAR(255);
 
 SET SQL_SAFE_UPDATES = 0;
 
+-- UPDATE artists a
+-- SET a.nationality_list = (
+-- SELECT GROUP_CONCAT(n.nationality_en ORDER BY LOCATE(n.nationality_en, a.Biography) SEPARATOR ', ') 
+-- FROM nationalities n
+-- WHERE a.Biography LIKE CONCAT('%', n.nationality_en, '%')
+-- );
+
 UPDATE artists a
 SET a.nationality_list = (
-SELECT GROUP_CONCAT(n.nationality_en ORDER BY LOCATE(n.nationality_en, a.Biography) SEPARATOR ', ') 
-FROM nationalities n
-WHERE a.Biography LIKE CONCAT('%', n.nationality_en, '%')
+    SELECT GROUP_CONCAT(n.nationality_en ORDER BY LOCATE(n.nationality_en, a.Biography) SEPARATOR ', ')
+    FROM nationalities n
+    WHERE a.Biography REGEXP CONCAT('\\b', n.nationality_en, '\\b')
 );
 
 UPDATE artists
@@ -642,10 +649,18 @@ UPDATE artists set nationality_list = NULL;
 
 UPDATE artists a
 SET a.nationality_list = (
-SELECT GROUP_CONCAT(n.nationality_es ORDER BY LOCATE(n.nationality_es, a.Biography) SEPARATOR ', ') 
-FROM nationalities n
-WHERE a.Biography LIKE CONCAT('%', n.nationality_es, '%')
+    SELECT GROUP_CONCAT(n.nationality_es ORDER BY LOCATE(n.nationality_es, a.Biography) SEPARATOR ', ')
+    FROM nationalities n
+    WHERE a.Biography REGEXP CONCAT('\\b', n.nationality_es, '\\b')
 );
+
+
+-- UPDATE artists a
+-- SET a.nationality_list = (
+-- SELECT GROUP_CONCAT(n.nationality_es ORDER BY LOCATE(n.nationality_es, a.Biography) SEPARATOR ', ') 
+-- FROM nationalities n
+-- WHERE a.Biography LIKE CONCAT('%', n.nationality_es, '%')
+-- );
 
 UPDATE artists
 SET nationality_list = SUBSTRING_INDEX(nationality_list, ', ', 1);
@@ -1336,10 +1351,24 @@ DROP COLUMN country,
 DROP COLUMN male, 
 DROP COLUMN female, 
 DROP COLUMN non_binary, 
-DROP COLUMN band;
+DROP COLUMN band,
+DROP COLUMN gender;
 
 ALTER TABLE genders 
 DROP COLUMN pronouns_en,
 DROP COLUMN pronouns_es; 
+
+DROP TABLE band;
+DROP TABLE brazil_cities;
+DROP TABLE female;
+
+DROP TABLE japan_cities;
+DROP TABLE male;
+DROP TABLE mexico_cities;
+DROP TABLE non_binary;
+DROP TABLE uk_cities;
+DROP TABLE us_cities;
+DROP TABLE us_citizens;
+DROP TABLE us_states;
 
 SET SQL_SAFE_UPDATES = 1;
