@@ -1,5 +1,11 @@
 # da-project-promo-50-modulo-2-team-3
 
+useful files: 
+
+1. data-retrieving_final.ipynb: to generate the sample and sending the data to SQL
+2. music_trends.sql: to create the relationanal table in SQL
+3. query_music.sql: to run the querries to get the final tables
+
 A company of music streaming (Music Streams) has contacted us to improve their users experience. They want to identify the changes in music trends based on music-genre and artist gender after the Covid-Pandemic, in order to tailor their music options to their users' tastes. In order to do that, we have extracted information from two different APIs, Spotify and LastFM. 
 
 Since Spotify is the music streamer app with most users we extracted a sample of 24000 tracks that were published each year of our time-frame. The sample consists of 1000 tracks per genre per year, where we have 4 genres and six years. In this Database we have:
